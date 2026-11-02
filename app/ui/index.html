@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CleanReach — Contact Hygiene Studio</title>
+<style>
+  :root{
+    --bg:#0B1210; --surface:#121B17; --surface2:#182420; --border:#24352D;
+    --text:#E8F4EF; --muted:#93A89D; --mint:#3ED598; --mint-dim:#2A7A5B;
+    --amber:#F2B33D; --danger:#F26D6D; --info:#7FB4C7;
+    --radius:12px; --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px}
+  header{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+  header img{width:40px;height:40px;border-radius:10px}
+  header h1{font-size:19px;margin:0;letter-spacing:.2px}
+  header .tag{color:var(--muted);font-size:12.5px;margin-top:1px}
+  header .free{margin-left:auto;background:var(--surface2);border:1px solid var(--mint-dim);color:var(--mint);padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600}
+  nav{display:flex;gap:6px;padding:10px 20px 0;flex-wrap:wrap}
+  nav button{background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 14px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600}
+  nav button.active{background:var(--surface2);color:var(--text);border-color:var(--border)}
+  main{padding:18px 20px 34px;max-width:1060px;margin:0 auto}
+  section{display:none} section.active{display:block}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+  .card h2{margin:0 0 6px;font-size:16px}
+  .card p.hint{color:var(--muted);margin:0 0 12px;font-size:13.5px;line-height:1.5}
+  textarea,input[type=text],input[type=number],select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:11px;font-family:var(--mono);font-size:13.5px}
+  textarea{min-height:170px;resize:vertical}
+  label{font-size:13px;color:var(--muted);display:block;margin:10px 0 5px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+  .hero-btn{background:var(--mint);color:#06231A;border:none;font-size:17px;font-weight:800;padding:15px 22px;border-radius:11px;cursor:pointer;width:100%;letter-spacing:.3px}
+  .hero-btn:disabled{opacity:.55;cursor:wait}
+  .btn{background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:9px 14px;border-radius:9px;cursor:pointer;font-weight:600;font-size:13.5px}
+  .btn:hover{border-color:var(--mint-dim)}
+  .btn.amber{border-color:#6B5320;color:var(--amber)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .chip{background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+  .chip.active{color:#06231A;background:var(--mint);border-color:var(--mint);font-weight:700}
+  .chip b{color:inherit}
+  .stat{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 13px;margin:0 8px 8px 0;font-size:13px}
+  .stat b{font-size:17px;color:var(--mint)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.5px}
+  td.mono{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+  .lane{font-weight:700;font-size:12px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .lane-clean-personal,.lane-clean-corporate{background:#12382A;color:var(--mint)}
+  .lane-free-provider-risky,.lane-unknown{background:#3D2E10;color:var(--amber)}
+  .lane-disposable,.lane-invalid{background:#3D1A1A;color:var(--danger)}
+  .lane-role{background:#1D2E3D;color:var(--info)}
+  .exports{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .note{border-left:3px solid var(--amber);padding:9px 13px;background:var(--surface2);border-radius:0 9px 9px 0;color:var(--muted);font-size:13.5px;line-height:1.55}
+  .ok{color:var(--mint)} .bad{color:var(--danger)} .warn-t{color:var(--amber)}
+  pre{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;overflow:auto;font-size:12.5px;max-height:300px}
+  .switch{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:14px;color:var(--text)}
+  .switch input{width:18px;height:18px;accent-color:var(--mint)}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--mint-dim);color:var(--text);padding:10px 18px;border-radius:10px;display:none;font-size:14px;z-index:9}
+  footer{color:var(--muted);font-size:12.5px;text-align:center;padding:8px 20px 22px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="CleanReach logo">
+  <div>
+    <h1>CleanReach</h1>
+    <div class="tag">Contact Hygiene Studio — clean lists, honestly.</div>
+  </div>
+  <span class="free">✨ FREE · OPEN SOURCE · OFFLINE</span>
+</header>
+
+<nav>
+  <button data-screen="dashboard" class="active">🧽 Dashboard</button>
+  <button data-screen="lanes">🗂️ Lanes &amp; Exports</button>
+  <button data-screen="toolkit">🧰 File Toolkit</button>
+  <button data-screen="phone">📱 Phone Validator</button>
+  <button data-screen="domain">🌐 Domain Health</button>
+  <button data-screen="settings">⚙️ Engines &amp; Settings</button>
+</nav>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="active">
+    <div class="card">
+      <h2>Paste or drop your list</h2>
+      <p class="hint">CSV with <b>email,phone,consent</b> columns, plain email lists, or messy text — CleanReach extracts, dedupes, verifies and classifies it <b>on this device</b>. Your list is never uploaded anywhere. Only clean lists you own or are authorized to use.</p>
+      <textarea id="listInput" placeholder="email,phone,consent&#10;jane@yourcompany.com,07700 900123,true&#10;temp@mailinator.com,,false&#10;support@yourcompany.com,,false"></textarea>
+      <div class="row">
+        <div>
+          <label for="region">Default phone region</label>
+          <select id="region"><option>GB</option><option>US</option><option>CA</option></select>
+        </div>
+        <div>
+          <label class="switch" style="margin-top:26px"><input type="checkbox" id="checkMx"> Check domain MX records (uses network)</label>
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="hero-btn" id="cleanBtn">🧽✨ CLEAN MY LIST</button>
+      <div class="chips" id="statChips" style="margin-top:16px"></div>
+      <div class="note">Disposable / temp addresses are <b>removed from the clean export by default</b>. Free providers (Gmail etc.) are marked <b>risky</b>, never fake-“valid”. <b>Unknown ≠ invalid.</b></div>
+    </div>
+  </section>
+
+  <!-- LANES -->
+  <section id="lanes">
+    <div class="card">
+      <h2>Results by lane</h2>
+      <p class="hint">Run a clean from the Dashboard first. Filter by lane, then export exactly the lanes you want.</p>
+      <div class="chips" id="laneChips"></div>
+      <div style="overflow:auto;max-height:430px">
+        <table><thead><tr><th>Email</th><th>Lane</th><th>Phone (E.164)</th><th>Consent</th><th>Why</th></tr></thead><tbody id="resultsBody"></tbody></table>
+      </div>
+      <div class="exports" id="exportBtns"></div>
+      <div class="note" style="margin-top:14px">📤 <b>consented_phones.csv</b> is the only bridge to Opt-in Messaging — it contains <b>only</b> rows where consent = true <b>and</b> the phone validated.</div>
+    </div>
+  </section>
+
+  <!-- TOOLKIT -->
+  <section id="toolkit">
+    <div class="card">
+      <h2>Split a list</h2>
+      <p class="hint">Paste lines, choose a chunk size, download the parts.</p>
+      <textarea id="splitInput" style="min-height:110px" placeholder="one entry per line"></textarea>
+      <div class="row"><div><label for="splitSize">Lines per file</label><input type="number" id="splitSize" value="1000" min="1"></div></div>
+      <div style="height:10px"></div><button class="btn" id="splitBtn">✂️ Split</button>
+      <div class="exports" id="splitOut"></div>
+    </div>
+    <div class="card">
+      <h2>Merge lists</h2>
+      <p class="hint">Paste two or more lists (separated by a line containing only <b>---</b>) and merge them into one de-duplicated list.</p>
+      <textarea id="mergeInput" style="min-height:110px" placeholder="list one…&#10;---&#10;list two…"></textarea>
+      <div style="height:10px"></div><button class="btn" id="mergeBtn">🧩 Merge &amp; dedupe</button>
+      <pre id="mergeOut" style="display:none"></pre>
+    </div>
+  </section>
+
+  <!-- PHONE -->
+  <section id="phone">
+    <div class="card">
+      <h2>Phone validator</h2>
+      <p class="hint">GB / US / CA numbers: format check + E.164 normalization. Line type is honestly reported as <b>unknown</b> — no carrier lookup happens on your device.</p>
+      <div class="row">
+        <div><label for="phoneInput">Number</label><input type="text" id="phoneInput" placeholder="07700 900123 or +1 212 555 0147"></div>
+        <div><label for="phoneRegion">Default region</label><select id="phoneRegion"><option>GB</option><option>US</option><option>CA</option></select></div>
+      </div>
+      <div style="height:12px"></div><button class="btn" id="phoneBtn">📱 Validate</button>
+      <pre id="phoneOut" style="display:none"></pre>
+    </div>
+  </section>
+
+  <!-- DOMAIN -->
+  <section id="domain">
+    <div class="card">
+      <h2>Domain health</h2>
+      <p class="hint">A, MX, SPF and DMARC for any domain — the same checks CleanReach uses when classifying your list's domains.</p>
+      <div class="row"><div><label for="domainInput">Domain</label><input type="text" id="domainInput" placeholder="example.com"></div></div>
+      <div style="height:12px"></div><button class="btn" id="domainBtn">🌐 Check domain</button>
+      <pre id="domainOut" style="display:none"></pre>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings">
+    <div class="card">
+      <h2>Engines</h2>
+      <p class="hint"><b>Native Rust engine (built-in, default)</b> — syntax, disposable detection, MX/SPF/DMARC, lanes, phones. Fully offline, deterministic, no AI calls with your lists, ever.</p>
+      <p class="hint"><b>Optional sidecar engines</b> — TrueMail Go and AfterShip email-verifier can run as your own local HTTP services and be consulted as a second opinion. See <b>ENGINES.md</b> in the repository. CleanReach ships with <b>no credentials</b>: any API key a sidecar needs is <b>yours</b> (BYOK), entered on your own service, never in this app.</p>
+      <label for="dispExtra">Extra disposable domains (one per line, added to the built-in list for this session)</label>
+      <textarea id="dispExtra" style="min-height:90px" placeholder="tempmail-example.com"></textarea>
+      <div class="note" style="margin-top:12px">🔒 SMTP probing is <b>off by default</b> and only available in the CLI (<span style="font-family:var(--mono)">--smtp-probe</span>) for lists you own — it is intrusive by nature, so it is never a silent default.</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  CleanReach — Contact Hygiene Studio · Free &amp; open source (MIT) · Made with Rust + Tauri<br>
+  Honest by design: syntax/MX/SPF are evidence, not inbox proof · Unknown means unverified
+</footer>
+<div id="toast"></div>
+
+<script>
+const invoke = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
+  || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke);
+let lastReport = null, lastExports = [], activeLane = "all";
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 3400); }
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  document.querySelectorAll('main section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(b.dataset.screen).classList.add('active');
+}));
+function show(screen){ document.querySelector(`nav button[data-screen="${screen}"]`).click(); }
+
+async function saveFile(name, content){
+  if(invoke){ try{ const p = await invoke('save_export',{filename:name, content}); toast('Saved: '+p); return; }catch(e){ toast('Save failed: '+e); return; } }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type:'text/plain'})); a.download=name; a.click();
+}
+
+document.getElementById('cleanBtn').addEventListener('click', async ()=>{
+  const text=document.getElementById('listInput').value;
+  if(!text.trim()){ toast('Paste a list first'); return; }
+  const btn=document.getElementById('cleanBtn'); btn.disabled=true; btn.textContent='🧽 Cleaning…';
+  try{
+    if(!invoke){ toast('Native engine not available in a plain browser — use the app or CLI'); return; }
+    const raw = await invoke('clean_list',{ listText:text, checkMx:document.getElementById('checkMx').checked,
+      region:document.getElementById('region').value, disposableExtra:document.getElementById('dispExtra').value });
+    const data=JSON.parse(raw); lastReport=data.report; lastExports=data.exports;
+    renderStats(); renderLanes(); show('lanes'); toast('Done — '+lastReport.total_rows+' rows cleaned');
+  }catch(e){ toast('Error: '+e); }
+  finally{ btn.disabled=false; btn.textContent='🧽✨ CLEAN MY LIST'; }
+});
+
+function renderStats(){
+  const c=lastReport.lane_counts||{}; const el=document.getElementById('statChips'); el.innerHTML='';
+  const mk=(label,val)=>{ const s=document.createElement('span'); s.className='stat'; s.innerHTML=label+' <b>'+val+'</b>'; el.appendChild(s); };
+  mk('Rows', lastReport.total_rows); mk('Duplicates removed', lastReport.duplicates_removed);
+  Object.keys(c).forEach(k=>mk(k, c[k]));
+}
+function renderLanes(){
+  const counts=lastReport.lane_counts||{};
+  const chips=document.getElementById('laneChips'); chips.innerHTML='';
+  const lanes=['all',...Object.keys(counts)];
+  lanes.forEach(l=>{
+    const b=document.createElement('button'); b.className='chip'+(l===activeLane?' active':'');
+    b.textContent = l==='all' ? 'All ('+lastReport.contacts.filter(x=>x.email).length+')' : l+' ('+(counts[l]||0)+')';
+    b.addEventListener('click',()=>{ activeLane=l; renderLanes(); }); chips.appendChild(b);
+  });
+  const body=document.getElementById('resultsBody'); body.innerHTML='';
+  lastReport.contacts.forEach(ct=>{
+    if(!ct.email) return;
+    if(activeLane!=='all' && ct.email.lane!==activeLane) return;
+    const tr=document.createElement('tr');
+    const ph = ct.phone && ct.phone.e164 ? ct.phone.e164 : '';
+    tr.innerHTML='<td class="mono"></td><td><span class="lane lane-'+ct.email.lane+'">'+ct.email.lane+'</span></td><td class="mono">'+ph+'</td><td>'+(ct.consent?'✅':'—')+'</td><td></td>';
+    tr.children[0].textContent=ct.email.address; tr.children[4].textContent=ct.email.reason;
+    body.appendChild(tr);
+  });
+  const eb=document.getElementById('exportBtns'); eb.innerHTML='';
+  lastExports.forEach(ex=>{
+    const b=document.createElement('button'); b.className='btn'+(ex.name==='clean.csv'?'':'')+(ex.name==='consented_phones.csv'?' amber':'');
+    b.textContent='⬇️ '+ex.name; b.addEventListener('click',()=>saveFile(ex.name, ex.content)); eb.appendChild(b);
+  });
+}
+
+document.getElementById('splitBtn').addEventListener('click', async ()=>{
+  const text=document.getElementById('splitInput').value; const size=parseInt(document.getElementById('splitSize').value||'1000',10);
+  const out=document.getElementById('splitOut'); out.innerHTML='';
+  try{ const data=JSON.parse(await invoke('split_list',{listText:text, size}));
+    data.parts.forEach(p=>{ const b=document.createElement('button'); b.className='btn'; b.textContent='⬇️ '+p.name; b.addEventListener('click',()=>saveFile(p.name,p.content)); out.appendChild(b); });
+    toast(data.parts.length+' parts ready');
+  }catch(e){ toast('Error: '+e); }
+});
+document.getElementById('mergeBtn').addEventListener('click', async ()=>{
+  const parts=document.getElementById('mergeInput').value.split(/^\s*---\s*$/m).map(s=>s.trim()).filter(Boolean);
+  try{ const data=JSON.parse(await invoke('merge_lists_cmd',{listTexts:parts}));
+    const pre=document.getElementById('mergeOut'); pre.style.display='block'; pre.textContent=data.content; toast('Merged: '+data.count+' unique lines');
+  }catch(e){ toast('Error: '+e); }
+});
+document.getElementById('phoneBtn').addEventListener('click', async ()=>{
+  try{ const v=JSON.parse(await invoke('validate_phone_cmd',{number:document.getElementById('phoneInput').value, region:document.getElementById('phoneRegion').value}));
+    const pre=document.getElementById('phoneOut'); pre.style.display='block';
+    pre.textContent='Status: '+v.status+'\nE.164: '+(v.e164||'—')+'\nCountry: '+(v.country||'—')+'\nNational: '+(v.national||'—')+'\nLine type: '+v.line_type+'\nWhy: '+v.reason;
+  }catch(e){ toast('Error: '+e); }
+});
+document.getElementById('domainBtn').addEventListener('click', async ()=>{
+  try{ const d=JSON.parse(await invoke('check_domain',{domain:document.getElementById('domainInput').value}));
+    const h=d.health; const pre=document.getElementById('domainOut'); pre.style.display='block';
+    pre.textContent='Verdict: '+d.verdict+'\nA: '+(h.a_records.join(', ')||'—')+'\nMX: '+(h.mx_records.join(', ')||'—')+'\nSPF: '+(h.spf||'—')+'\nDMARC: '+(h.dmarc||'—')+(h.error?'\nNote: '+h.error:'');
+  }catch(e){ toast('Error: '+e); }
+});
+</script>
+</body>
+</html>

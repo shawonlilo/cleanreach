@@ -1,0 +1,1 @@
+{"$schema":"../gen/schemas/desktop-schema.json","description":"Default window permissions. The app needs no filesystem, shell or plugin permissions of its own — all work happens inside cr-core on the user's own list, on their own device.","identifier":"default","permissions":["core:default"],"windows":["main"]}
