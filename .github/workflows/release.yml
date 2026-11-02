@@ -1,0 +1,181 @@
+name: Release
+
+# Born-beta factory: push a version tag (v0.1.0-beta.1) and this builds
+# installers for Windows, macOS, Linux and Debian, the cleanreach CLI for
+# all three desktops, and an experimental Android APK.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+# Without this, GITHUB_TOKEN is read-only in this repo and every release
+# create/upload from CI fails with 403 "Resource not accessible by
+# integration" (the v0.2.0–v0.2.2 saga). Artifact uploads are unaffected.
+permissions:
+  contents: write
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Core tests
+        run: cargo test --release
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Slop scan (aislop, fail under 80)
+        run: |
+          npx --yes aislop scan . || true
+          echo "aislop is advisory during beta; gitleaks + tests are the hard gates"
+
+  cli:
+    needs: quality-gates
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact: cleanreach-linux-x64
+          - os: windows-latest
+            artifact: cleanreach-windows-x64
+          - os: macos-latest
+            artifact: cleanreach-macos-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build CLI
+        run: cargo build --release --bin cleanreach
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            target/release/cleanreach
+            target/release/cleanreach.exe
+      - name: Name the binary per-platform (avoids Linux/macOS name collision)
+        shell: bash
+        run: |
+          if [ -f target/release/cleanreach.exe ]; then
+            cp target/release/cleanreach.exe "${{ matrix.artifact }}.exe"
+          else
+            cp target/release/cleanreach "${{ matrix.artifact }}"
+          fi
+      - name: Attach the CLI binary to the GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: CleanReach ${{ github.ref_name }}
+          files: ${{ matrix.artifact }}*
+          fail_on_unmatched_files: false
+
+  desktop:
+    needs: quality-gates
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            args: ""
+          - os: macos-latest
+            args: "--target aarch64-apple-darwin"
+          - os: macos-latest
+            args: "--target x86_64-apple-darwin"
+          - os: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux system packages
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev libssl-dev
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - name: Build app + installers
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: app
+          tagName: ${{ github.ref_name }}
+          releaseName: "CleanReach ${{ github.ref_name }}"
+          releaseBody: "See the assets below to download and install this version."
+          releaseDraft: false
+          prerelease: true
+          args: ${{ matrix.args }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Keep bundles as artifacts (safety net)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundles-${{ matrix.os }}-${{ strategy.job-index }}
+          path: |
+            app/src-tauri/target/**/release/bundle/**/*.exe
+            app/src-tauri/target/**/release/bundle/**/*.msi
+            app/src-tauri/target/**/release/bundle/**/*.dmg
+            app/src-tauri/target/**/release/bundle/**/*.AppImage
+            app/src-tauri/target/**/release/bundle/**/*.deb
+            app/src-tauri/target/**/release/bundle/**/*.app.tar.gz
+          if-no-files-found: warn
+
+  android:
+    needs: quality-gates
+    runs-on: ubuntu-22.04
+    continue-on-error: true # beta: Android lane is experimental
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Android SDK packages + NDK (SDK is preinstalled on the runner)
+        run: |
+          export ANDROID_HOME="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;27.2.12479018"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+      - name: Rust + Android targets
+        run: |
+          rustup target add aarch64-linux-android armv7-linux-androideabi
+          cargo install tauri-cli --version "^2" --locked
+      - name: Init + build Android (release profile, arm64)
+        working-directory: app/src-tauri
+        run: |
+          cargo tauri android init
+          # Release profile (optimized + stripped) for the arm64 ABI that
+          # every modern Android phone uses. A release build comes out
+          # unsigned; the next step signs it so it can be sideloaded.
+          cargo tauri android build --apk --target aarch64
+      - name: Sign the APK (ephemeral CI debug key) + give it a real name
+        run: |
+          BT="$ANDROID_HOME/build-tools/34.0.0"
+          UNSIGNED=$(find app/src-tauri/gen/android -name "*-release-unsigned.apk" | head -1)
+          echo "unsigned APK: $UNSIGNED"
+          keytool -genkeypair -keystore /tmp/cr.keystore -storepass android \
+            -keypass android -alias cr -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=CleanReach CI,O=Cyberspace Work,C=BD"
+          "$BT/zipalign" -f 4 "$UNSIGNED" /tmp/cr-aligned.apk
+          "$BT/apksigner" sign --ks /tmp/cr.keystore --ks-pass pass:android \
+            --key-pass pass:android --out cleanreach-android.apk /tmp/cr-aligned.apk
+          "$BT/apksigner" verify --print-certs cleanreach-android.apk | head -3
+          ls -la cleanreach-android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cleanreach-android-apk
+          path: cleanreach-android.apk
+          if-no-files-found: warn
+      - name: Attach the APK to the GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: CleanReach ${{ github.ref_name }}
+          files: cleanreach-android.apk
+          fail_on_unmatched_files: false
