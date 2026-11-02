@@ -324,7 +324,7 @@ dependencies = [
 
 [[package]]
 name = "cleanreach"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cr-core",
  "tauri",
@@ -402,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "cr-core"
-version = "0.1.0"
+version = "0.2.1"
 
 [[package]]
 name = "crc32fast"

@@ -180,8 +180,12 @@
 <div id="toast"></div>
 
 <script>
+/* Tauri bridge: prefer the __TAURI__ global (needs withGlobalTauri in
+   tauri.conf.json), fall back to the always-injected Tauri 2 internals.
+   Native mode only requires either one; a plain browser has neither. */
 const invoke = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke)
   || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke);
+const IS_NATIVE = !!invoke;
 let lastReport = null, lastExports = [], activeLane = "all";
 
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 3400); }

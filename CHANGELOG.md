@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.1 — 2026-11-02 — Demo-mode fix (critical)
+
+- **Fixed: the installed app was stuck in demo mode.** The Tauri
+  bridge was never enabled (`withGlobalTauri` was missing from
+  tauri.conf.json), so Clean / Split / Merge / Phone / Domain /
+  Export could not reach the native engine in the installed app.
+  The bridge is now enabled, and the UI also falls back to the
+  always-injected Tauri 2 internals. If v0.2.0 told you the native
+  engine was not available, update to v0.2.1 — fixed.
+
 ## v0.2.0 — 2026-11-02 🤍 Essential Light edition
 
 - 🤍 **New V1 Essential Light design** — the Stitch design-program winner,
