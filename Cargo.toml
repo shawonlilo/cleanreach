@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = ["core", "cli"]
+default-members = ["core", "cli"]
+exclude = ["app/src-tauri"]
+# The Tauri app in app/ is its own workspace (see app/src-tauri/Cargo.toml).
+# It consumes the same cr-core library through a path dependency.
+
+[profile.release]
+opt-level = 3
+lto = true
