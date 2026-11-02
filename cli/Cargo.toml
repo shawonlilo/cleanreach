@@ -1,0 +1,13 @@
+[package]
+name = "cleanreach-cli"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "CleanReach CLI: batch contact hygiene — clean, verify, classify and export email/phone lists. Same cr-core engine as the desktop/mobile app."
+
+[[bin]]
+name = "cleanreach"
+path = "src/main.rs"
+
+[dependencies]
+cr-core = { path = "../core" }
