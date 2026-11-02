@@ -1,6 +1,6 @@
 [package]
 name = "cr-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "CleanReach core engine: contact list extraction, email verification (syntax, disposable detection, MX/SPF/DMARC), lane classification, phone validation, and file toolkit. Pure std — no external crates, deterministic verdicts, no AI calls."

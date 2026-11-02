@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.0 — 2026-11-02 🤍 Essential Light edition
+
+- 🤍 **New V1 Essential Light design** — the Stitch design-program winner,
+  now the app's official look: warm off-white paper surfaces, white cards
+  with soft tinted borders and gentle shadows, strong mint + amber brand
+  accents, colored lane pills and stat chips. Premium light, never plain
+  stark white.
+- 🎨 Visual rebuild only — every feature, command and export from v0.1.0
+  works exactly as before (clean pipeline, honest lanes, phone validator,
+  domain health, file toolkit, consented-phones bridge).
+
+
 ## v0.1.0 — 2026-11-02 🎉 First release
 
 CleanReach — Contact Hygiene Studio is born (beta).
